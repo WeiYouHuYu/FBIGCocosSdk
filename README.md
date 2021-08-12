@@ -69,6 +69,9 @@ const FB_AD_DELAY_FOR_FIRST_REWARDED_VIDEO = 0; // 首个激励视频广告延�
 ```
 ### 接入示例
 参考 FBCocosDemo/assets/Script/FBApp.ts
+#### 复制并引入FBAdManager.ts
+直接将文件复制到项目中
+
 #### 初始化
 ```
     // 设置广告id,
