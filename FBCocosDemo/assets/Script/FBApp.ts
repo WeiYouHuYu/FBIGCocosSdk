@@ -4,19 +4,20 @@ const {ccclass, property} = cc._decorator;
 
 /*
 Test
-视频： 948648615913785_949878532457460
-插屏： 948648615913785_949878459124134
+video： 948648615913785_949878532457460
+interstitial： 948648615913785_949878459124134
 banner： 948648615913785_949878362457477
 
 Test02
-视频： 4262010590525770_4272913659435463
-插屏： 4262010590525770_4272912656102230
+video: 4262010590525770_4272913659435463
+interstitial： 4262010590525770_4272912656102230
 banner： 4262010590525770_4272911552769007
 
 ColorUp
 Interstitial 272188327036051_274461726808711
 RewardedVideo 272188327036051_274461436808740
 */
+
 const FB_ADS = {
     INTERSTITIAL: "4262010590525770_4272912656102230",
     REWARDED_VIDEO: "4262010590525770_4272913659435463",
@@ -44,10 +45,10 @@ export default class FBApp extends cc.Component {
 
         this.label.string = "广告测试步骤: " + 
 `
-1. 添加广告id
-2. 加载
-3. 检查状态
-4. 播放
+1. add ad id
+2. load
+3. check ready status
+4. show ad
 `        
 
     }
@@ -149,9 +150,9 @@ export default class FBApp extends cc.Component {
     public addInterstitial(){
         try{
             let total = FBAdManager.addInterstitial(FB_ADS.INTERSTITIAL, 3);
-            this.label.string = "添加插屏广告，总数: " + total;
+            this.label.string = "add interstitial, count: " + total;
         }catch(e){
-            this.label.string = "添加插屏广告，错误: " + e.message;
+            this.label.string = "add interstitial, error: " + e.message;
         }
 
     }
@@ -159,9 +160,9 @@ export default class FBApp extends cc.Component {
     public addRewardedVideo(){
         try{
             let total = FBAdManager.addRewardedVideo(FB_ADS.REWARDED_VIDEO, 3);
-            this.label.string = "添加激励视频广告，总数: " + total;
+            this.label.string = "add video, count: " + total;
         }catch(e){
-            this.label.string = "添加激励视频广告，错误: " + e.message;
+            this.label.string = "add video, error: " + e.message;
         }
     }
 
@@ -170,28 +171,28 @@ export default class FBApp extends cc.Component {
     }
 
     public isInterstitialReady(){
-        this.label.string = "插屏广告状态: " + FBAdManager.isInterstitialAdReady();
+        this.label.string = "is interstitial ready: " + FBAdManager.isInterstitialAdReady();
     }
 
     public showInterstitial(){
-        this.label.string = "尝试播放插屏广告";
+        this.label.string = "try show interstitial";
         FBAdManager.showInterstitialAd().then(()=>{
-            this.label.string = "播放插屏广告: 成功";
+            this.label.string = "show interstitial success";
         }).catch(e=>{
-            this.label.string = "播放插屏广告: 失败，原因: " + e.message;
+            this.label.string = "show interstitial failed: " + e.message;
         });
     }
 
     public isRewardVideoReady(){
-        this.label.string = "激励视频广告状态: " + FBAdManager.isRewardedVideoReady();
+        this.label.string = "is video ready: " + FBAdManager.isRewardedVideoReady();
     }
 
     public showRewardVideo(){
-        this.label.string = "尝试播放激励视频广告";
+        this.label.string = "try show video";
         FBAdManager.showRewardedVideo().then(()=>{
-            this.label.string = "播放激励视频广告: 成功";
+            this.label.string = "show video success";
         }).catch(e=>{
-            this.label.string = "播放激励视频广告: 失败，原因: " + e.message;
+            this.label.string = "show video failed: " + e.message;
         });
     }
 
@@ -201,17 +202,17 @@ export default class FBApp extends cc.Component {
 
     public showBanner(){
         FBAdManager.showBannerAsync().then(()=>{
-            this.label.string = "显示Banner广告: 成功";
+            this.label.string = "show Banner success";
         }).catch(e=>{
-            this.label.string = "显示Banner广告: 失败，原因: " + e.message;
+            this.label.string = "show banner failed: " + e.message;
         });
     }
 
     public hideBanner(){
         FBAdManager.hideBannerAsync().then(()=>{
-            this.label.string = "隐藏Banner广告: 成功";
+            this.label.string = "hide banner success";
         }).catch(e=>{
-            this.label.string = "隐藏Banner广告: 失败，原因: " + e.message;
+            this.label.string = "hide banner failed: " + e.message;
         });
     }
 }

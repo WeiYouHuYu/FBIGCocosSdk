@@ -1,52 +1,20 @@
-// fb文档 https://developers.facebook.com/docs/games/instant-games/sdk/fbinstant6.3
-// 使用的话，直接看广告管理器 FBAdManager
-/*
-使用步骤
-* 1. addXXXXAd() 添加相应的广告，以及预加载的数量（默认为3)
-* 1.1. 插屏 addInterstitial
-* 1.2. 激励视频 addRewardedVideo
-* 1.3. banner addBanner
+const FB_MAX_AD_INSTANCE = 3;  
+const FB_INIT_AD_COUNT = 3;     
 
-* 2. loadAll() 预加载所有广告实例
+const FB_BANNER_REFRESH_INTERVAL = 30+10; 
+const FB_INTERSTITIAL_REFRESH_INTERVAL = 30+10; 
+const FB_REWARDED_VIDEO_REFRESH_INTERVAL = 0;   
 
-* 3. isXXXReady() 检查是否可以播放
-* 3.1. 插屏  isInterstitialAdReady
-* 3.2. 激励视频 isRewardedVideoReady
-* 3.3. banner isBannerReady
+const FB_MAX_BANNER_ERROR = 1;     
+const FB_MAX_INTERSTITIAL_ERROR = 3;   
+const FB_MAX_REWARDED_VIDEO_ERROR = 3;  
 
-* 4. showXXXAsync() 播放广告，并检查播放状态
-* 4.1. 插屏 showInterstitialAd
-* 4.2. 激励视频 showRewardedVideo
-* 4.3. banner showBannerAsync
+const FB_AUTO_LOAD_ON_PLAY = true;   
+const FB_AUTO_RELOAD_DELAY = 1;      
 
-* 5. hideXXXAsync() 隐藏广告（banner专属)
-* 5.1. 插屏 不需要
-* 5.2. 激励视频 不需要
-* 5.3. banner hideBannerAsync
-
-* 其他：
-* 6. 判断是否支持特定api
-* 6.1 判断是否支持banner广告
-// 
-*/
-
-const FB_MAX_AD_INSTANCE = 3;   // FB允许的最多广告实例数量
-const FB_INIT_AD_COUNT = 3;     // 预加载的广告实例数量
-
-const FB_BANNER_REFRESH_INTERVAL = 30+10; // FB: Banner广告有播放间隔限制 30 seconds (由于网络原因，需要多加一点时间)
-const FB_INTERSTITIAL_REFRESH_INTERVAL = 30+10; // FB: 插屏广告有播放间隔限制
-const FB_REWARDED_VIDEO_REFRESH_INTERVAL = 0;   // FB: 激励视频没有播放间隔限制
-
-const FB_MAX_BANNER_ERROR = 1;              // banner加载连续出现N次错误后，终止加载
-const FB_MAX_INTERSTITIAL_ERROR = 3;        // 插屏加载连续出现N次错误后，终止加载
-const FB_MAX_REWARDED_VIDEO_ERROR = 3;      // 激励视频加载连续出现N次错误后，终止加载
-
-const FB_AUTO_LOAD_ON_PLAY = true;          // 插屏、激励视频是否在播放完毕后自动加载
-const FB_AUTO_RELOAD_DELAY = 1;             // 自动重新加载时，延迟加载等待的时间
-
-const FB_AD_DELAY_FOR_FIRST_BANNER = 0;         // 首个banner广告延迟N秒显示
-const FB_AD_DELAY_FOR_FIRST_INTERSTITIAL = 30;  // 首个插屏广告需要延迟30秒播放（避免游戏前30秒就播放广告）
-const FB_AD_DELAY_FOR_FIRST_REWARDED_VIDEO = 0; // 首个激励视频广告延迟N秒显示
+const FB_AD_DELAY_FOR_FIRST_BANNER = 0; 
+const FB_AD_DELAY_FOR_FIRST_INTERSTITIAL = 30;  
+const FB_AD_DELAY_FOR_FIRST_REWARDED_VIDEO = 0; 
 
 enum FB_AD_TYPE{
     INTERSTITIAL = 0,
@@ -85,10 +53,14 @@ function getStateName(state:FB_AD_STATE){
 async function waitTimeSecond(timeoutSecond:number, callback?) {
     return new Promise<void>((resolve, reject)=>{
         setTimeout(()=>{
-            if(callback){
-                callback();
+            try{                
+                if(callback){
+                    callback();
+                }
+                resolve();    
+            }catch(e){
+                reject(e);
             }
-            resolve();
         }, timeoutSecond * 1000);
     });
 }
@@ -100,57 +72,57 @@ interface FB_ERROR{
 
 const ErrorTooManyAdInstance:FB_ERROR = {
     code: "EXCEED_MAX_AD_INSTANCE",
-    message: "广告对象不允许超过 " + FB_MAX_AD_INSTANCE
+    message: "Max AD Instance allowed: " + FB_MAX_AD_INSTANCE
 }
 
 const ErrorNoReadyAdInstance:FB_ERROR = {
     code: "NO_READY_AD_INSTANCE",
-    message: "没有加载完毕的广告，或者广告播放太频繁"
+    message: "AD Instance Not Ready or Played too frequently"
 }
 
 const ErrorNotReadyForLoad:FB_ERROR = {
     code: "NOT_READY_FOR_LOAD",
-    message: "当前状态不允许再次加载"
+    message: "Not Ready for Load"
 }
 
 const ErrorAdIsLoading:FB_ERROR = {
     code: "AD_IS_LOADING",
-    message: "广告正在加载"
+    message: "AD is Loading"
 }
 
 const ErrorNotReadyForPlay:FB_ERROR = {
     code: "NOT_READY_FOR_PLAYING",
-    message: "没有可以播放的广告"
+    message: "Not Ready for Playing"
 }
 
 const ErrorAdIsPlaying:FB_ERROR = {
     code: "AD_IS_PLAYING",
-    message: "广告正在播放"
+    message: "AD is Playing"
 }
 
 const ErrorNoBannerAdInstance:FB_ERROR = {
     code: "NO_BANNER_AD",
-    message: "没有添加Banner广告"
+    message: "No Banner Ad Instance"
 }
 
 const ErrorApiNotSupport:FB_ERROR = {
     code: "API_NOT_SUPPORT",
-    message: "广告接口不支持"
+    message: "API Not Support"
 }
 
 const ErrorTooFastShow:FB_ERROR = {
     code: "TOO_FAST_SHOW",
-    message: "广告播放太频繁"
+    message: "Too Fast To Show Ads"
 }
 
 const ErrorNotPlaying:FB_ERROR = {
     code: "NOT_PLAYING",
-    message: "广告没有播放"
+    message: "Ads Not Playing"
 }
 
 const ErrorTooManyErrors:FB_ERROR = {
     code: "TOO_MANY_ERRORS",
-    message: "太多错误, 停止操作"
+    message: "Too Many Errors, Stop Next Action"
 }
 
 const FB_API_BANNER = "loadBannerAdAsync";
@@ -163,12 +135,12 @@ const FB_ERROR_ADS_NO_FILL = "ADS_NO_FILL";
 
 interface FBAdOption{
     autoLoadOnPlay: boolean,
-    maxLoadError: number,      // 最多失误多少次后不再加载    
+    maxLoadError: number,      // max load error allowed
 }
 
 interface AdTimerOption{
-    refreshInterval: number,   // 播放间隔
-    delayForFirstAd: number,   // 第一个广告延迟N秒播放（避免游戏前30秒就播放广告）
+    refreshInterval: number,   
+    delayForFirstAd: number,   
 }
 
 function getOption(opt:FBAdOption, key:string, defaultValue:any){
@@ -179,10 +151,9 @@ function getOption(opt:FBAdOption, key:string, defaultValue:any){
     return defaultValue;
 }
 
-// 广告计时器
 class AdTimer{
-    protected _lastShowTime:number = 0;    // 上次显示时间
-    protected _refreshInterval:number = 0;    // 刷新间隔, <=0 表示无限制
+    protected _lastShowTime:number = 0;    
+    protected _refreshInterval:number = 0;    // refresh interval, <=0 means no interval
 
     constructor(interval:number, delay:number){
         this._refreshInterval = interval>0?interval:0;
@@ -217,9 +188,6 @@ class FBAdUnitBase{
     protected _adId:string;
     protected _type:FB_AD_TYPE;
 
-    // protected _lastShowTime:number = 0;    // 上次显示时间
-    // protected _refreshInterval:number = 0;    // 刷新间隔, <=0 表示无限制
-
     protected _maxLoadError:number = 0;
     protected _errorCounter:number = 0;
     protected _fatalError:boolean = false;
@@ -252,10 +220,10 @@ class FBAdUnitBase{
 
     public getAdTypeName(){
         if(this._type == FB_AD_TYPE.INTERSTITIAL){
-            return "插屏广告";
+            return "Interstitial";
         }
         if(this._type == FB_AD_TYPE.REWARDED_VIDEO){
-            return "激励视频广告";
+            return "RewardedVideo";
         }
         if(this._type == FB_AD_TYPE.BANNER){
             return "Banner";
@@ -298,11 +266,11 @@ class FBAdUnitBase{
     }
 }
 
-// 有状态的广告对象
+// AdUnit with state
 abstract class FBStatefulAdUnit extends FBAdUnitBase{
     private _adInstance:FBInstant.AdInstance;
 
-    private _autoLoadOnPlay:boolean; // 播放完毕后是否立即自动加载
+    private _autoLoadOnPlay:boolean; // auto reload when play
     
     constructor(id:string, type:number, sharedTimer:AdTimer, opt?:FBAdOption){
         super(id, type, sharedTimer, opt);
@@ -312,33 +280,29 @@ abstract class FBStatefulAdUnit extends FBAdUnitBase{
 
     protected abstract createAdInstanceAsync(adId:string):Promise<FBInstant.AdInstance>;
 
-    // 预加载广告
     public async loadAsync(){
-        // [1] 获取 AdInstance
+        // [1] get AdInstance
         if(this._adInstance == null){
             if(this._state == FB_AD_STATE.NONE){
-                // 只能创建一次
                 this._state = FB_AD_STATE.NEW;
 
-                console.log("获取广告对象: " + this.getInfo());
+                console.log("Get Ad Instance: " + this.getInfo());
 
                 this._adInstance = await this.createAdInstanceAsync(this._adId);
             }else{
-                // 已经在创建对象了 （new-ing)
-                console.log("当前状态未满足加载条件, 正在获取广告对象: " + this.getInfo());
+                console.log("Ad Instance is still creating: " + this.getInfo());
                 return;
             }
         }else{
-            // 对象已经创建好
-            // 可以进行预加载
+            // ad instance is ready
         }
 
-        // [2] 检查是否满足预加载条件
+        // [2] checking for preload
         if(this._state != FB_AD_STATE.NEW){
-            // 只有 NEW 状态才能进行加载
-            console.log("当前状态未满足加载条件: " + this.getInfo());
+            // preload only on NEW
+            console.log("Not ready for preload: " + this.getInfo());
             if(this._state == FB_AD_STATE.LOADING){
-                console.log("广告正在加载中，不要重复加载" + this.getInfo());
+                console.log("Ad is loading, do not reload" + this.getInfo());
                 throw ErrorAdIsLoading;
             }else{
                 throw ErrorNotReadyForLoad;
@@ -346,62 +310,57 @@ abstract class FBStatefulAdUnit extends FBAdUnitBase{
         }
 
         if(this.isErrorTooMany()){
-            console.log("太多错误，停止加载: " + this.getInfo());
+            console.log("Too many errors, stop loading: " + this.getInfo());
             throw ErrorTooManyErrors;
         }
 
         try{
-            // [3] 加载广告
-            // 设置为加载中
+            // [3] loading 
             this._state = FB_AD_STATE.LOADING;
 
-            console.log("开始加载广告: " + this.getInfo());
+            console.log("Start Loading: " + this.getInfo());
             await this._adInstance.loadAsync();
 
-            // [4] 成功加载
+            // [4] success
             this._state = FB_AD_STATE.LOADED;
             this.resetErrorCounter();
 
-            console.log("广告加载成功: " + this.getInfo());
+            console.log("Loading Success: " + this.getInfo());
             return true;
         }catch(e){
-            // [5] 加载失败
-            // 异常能正常进入promise的catch分支
-
-            // 加载失败，不需要重置 adInstance
+            // [5] load failed
+            // FB don't need reset adInstance object, or too many objects will be created
             // this._adInstance = null;
-            // 状态回退到加载前
 
-            console.error("广告加载失败: " + this.getInfo(), e);
+            console.error("Loading Failed: " + this.getInfo(), e);
             if((e as FB_ERROR).code == FB_ERROR_ADS_NO_FILL){
-                // 遇到 NOT FILL错误，就不能再继续加载了
-                console.error("广告无法填充，不再继续请求: " + this.getInfo());
+                // NOT FILL, Stop
+                console.error("Ads Not Fill, stop loading: " + this.getInfo());
                 this.setFatalError();
             }else{
                 this.increaseErrorCounter();
                 this._state = FB_AD_STATE.NEW;
     
-                // [6] 加载失败，自动重新加载
-                // 适当延迟
+                // [6] other error, retry later
                 let delayTime = 10 * this._errorCounter + FB_AUTO_RELOAD_DELAY;
-                console.log("延迟" + delayTime + "秒后, 自动重新加载: " + this.getInfo());
-                waitTimeSecond(delayTime, this.loadAsync.bind(this));
+                console.log("Reload after " + delayTime + " seconds: " + this.getInfo());
+                waitTimeSecond(delayTime, this.loadAsync.bind(this)).catch(e=>{
+                    console.info("Reload failed: " + this.getInfo(), e);
+                });
            }
 
             throw e;
         }
     }
 
-    // 广告是否加载完毕
     public isReady(){
         return this._adInstance != null && this._state == FB_AD_STATE.LOADED;
     }
 
-    // 播放广告
     public async showAsync(){
-        // [1.1] 判断是否满足播放条件
+        // [1.1] check state
         if(!this.isReady()){
-            console.log("当前状态未满足播放条件: " + this.getInfo());
+            console.log("Not Ready for play: " + this.getInfo());
             if(this._state == FB_AD_STATE.PLAYING){
                 throw ErrorAdIsPlaying;
             }else{
@@ -409,49 +368,49 @@ abstract class FBStatefulAdUnit extends FBAdUnitBase{
             }
         }
         
-        // [1.2] 是否满足播放间隔
+        // [1.2] 
         if(!this.isReadyToRefresh()){
-            console.log("播放太频繁，还需间隔" + this.getNextRefreshInterval() + " 秒: " + this.getInfo());
+            console.log("Play too frequently, wait for " + this.getNextRefreshInterval() + " seconds: " + this.getInfo());
             throw ErrorTooFastShow;
         }
 
         try{
-            // [2] 播放广告
-            // 设置为播放中
+            // [2] 
             this._state = FB_AD_STATE.PLAYING;
 
-            console.log("开始播放广告: " + this.getInfo());
+            console.log("Play Ads: " + this.getInfo());
             await this._adInstance.showAsync();
 
-            console.log("播放广告完毕: " + this.getInfo());
+            console.log("Play Success: " + this.getInfo());
 
-            // [3] 播放完毕后重置广告对象
+            // [3] reset ad instance once showAsync is called
             this._adInstance = null;
             this._state = FB_AD_STATE.NONE;
             this.updateLastShowTime();
 
-            // [4] 播完自动加载
+            // [4] done
             if(this._autoLoadOnPlay){
-                // TODO: 应该适当延迟
-                console.log("延迟" + FB_AUTO_RELOAD_DELAY + "秒后, 自动重新加载: " + this.getInfo());
-                waitTimeSecond(FB_AUTO_RELOAD_DELAY, this.loadAsync.bind(this));
+                console.log("Reload after " + FB_AUTO_RELOAD_DELAY + " seconds: " + this.getInfo());
+                waitTimeSecond(FB_AUTO_RELOAD_DELAY, this.loadAsync.bind(this)).catch(e=>{
+                    console.info("Reload failed: " + this.getInfo(), e);
+                });
             }
             return true;
         }catch(e){
-            // [5] 播放完毕后重置广告对象
-            console.log("播放广告失败: " + this.getInfo(), e);
+            // [5] reset ad instance once showAsync is called
+            console.log("Play Failed: " + this.getInfo(), e);
             if(e.code == FB_ERROR_CODE_RATE_LIMITED){
-                // 播放太频繁，可忽略
-                // 状态回退
                 this._state = FB_AD_STATE.LOADED;
             }else{
                 this._adInstance = null;
                 this._state = FB_AD_STATE.NONE;
     
-                // [6] 失败自动重新加载
+                // [6] other error, retry later
                 if(this._autoLoadOnPlay){
-                    console.log("延迟" + FB_AUTO_RELOAD_DELAY + "秒后, 自动重新加载: " + this.getInfo());
-                    waitTimeSecond(FB_AUTO_RELOAD_DELAY, this.loadAsync.bind(this));
+                    console.log("Reload after " + FB_AUTO_RELOAD_DELAY + " seconds: " + this.getInfo());
+                    waitTimeSecond(FB_AUTO_RELOAD_DELAY, this.loadAsync.bind(this)).catch(e=>{
+                        console.info("Reload Failed: " + this.getInfo(), e);
+                    });
                 }    
             }
 
@@ -462,7 +421,6 @@ abstract class FBStatefulAdUnit extends FBAdUnitBase{
     }
 }
 
-// 插屏广告
 class FBInterstitialUnit extends FBStatefulAdUnit{
     constructor(id:string, sharedTimer:AdTimer, opt?:FBAdOption){
         super(id, FB_AD_TYPE.INTERSTITIAL, sharedTimer, opt);
@@ -473,7 +431,6 @@ class FBInterstitialUnit extends FBStatefulAdUnit{
     }
 }
 
-// 激励视频广告
 class FBRewardedVideoUnit extends FBStatefulAdUnit{
     constructor(id:string, sharedTimer:AdTimer, opt?:FBAdOption){
         super(id, FB_AD_TYPE.REWARDED_VIDEO, sharedTimer, opt);
@@ -484,44 +441,50 @@ class FBRewardedVideoUnit extends FBStatefulAdUnit{
     }
 }
 
-// 横幅广告
+// NONE -> LOADING -> PLAYING -> NONE
 class FBBannerUnit extends FBAdUnitBase{
     constructor(id:string, sharedTimer:AdTimer,opt?:FBAdOption){
         super(id, FB_AD_TYPE.BANNER, sharedTimer, opt);
     }
 
-    // 显示Banner广告, 注意可以调用多次
+    // show banner, this interface could be called multiple times.
     public async showAsync(){
         if(!this.isReadyToRefresh()){
-            console.log("播放太频繁，还需间隔" + this.getNextRefreshInterval() + " 秒: " + this.getInfo());
+            console.log("Play too frequently, wait for " + this.getNextRefreshInterval() + " seconds: " + this.getInfo());
             throw ErrorTooFastShow;
         }
 
         if(this.isErrorTooMany()){
-            console.log("太多错误，停止加载: " + this.getInfo());
+            console.log("Too many errors, stop: " + this.getInfo());
             throw ErrorTooManyErrors;
         }
 
-        try{
-            this._state = FB_AD_STATE.PLAYING;
-            console.log("开始显示广告: " + this.getInfo());
-            await FBInstant.loadBannerAdAsync(this._adId);
-            console.log("显示广告成功: " + this.getInfo());
+        if(this._state == FB_AD_STATE.LOADING){
+            console.info("Banner is loading, wait for it: " + this.getInfo());
+            throw ErrorAdIsLoading;
+        }
 
-            // 更新刷新时间
+        try{
+            this._state = FB_AD_STATE.LOADING;
+            console.log("Show Banner: " + this.getInfo());
+            await FBInstant.loadBannerAdAsync(this._adId);
+
+            this._state = FB_AD_STATE.PLAYING;
+
+            console.log("Show Banner Success: " + this.getInfo());
+
             this.updateLastShowTime();
             this.resetErrorCounter();
         }catch(e){
-            console.error("显示广告失败: " + this.getInfo(), e);
+            console.error("Show Banner Failed: " + this.getInfo(), e);
             if(e.code == FB_ERROR_CODE_RATE_LIMITED){
-                // 播放太频繁，可忽略
-                // 不用重置，保留
+                this._state = FB_AD_STATE.NONE;
             }else if(e.code == FB_ERROR_ADS_NO_FILL){
-                // 遇到 NOT FILL错误，就不能再继续加载了
-                console.error("广告无法填充，不再继续请求: " + this.getInfo());
+                console.error("Ads Not Fill, Stop: " + this.getInfo());
                 this.setFatalError();
             }else{
                 this.increaseErrorCounter();
+                this._state = FB_AD_STATE.NONE;
             }
             
             throw e;
@@ -530,19 +493,17 @@ class FBBannerUnit extends FBAdUnitBase{
 
     public async hideAsync(){
         if(this._state != FB_AD_STATE.PLAYING){
-            console.log("广告没有在播放中: " + this.getInfo());
+            console.log("No Banner Playing: " + this.getInfo());
             throw ErrorNotPlaying;
         }
 
         try{
-            console.log("隐藏广告: " + this.getInfo());
-            // TODO: 重复隐藏广告不会报错
+            console.log("Hide Banner: " + this.getInfo());
             await FBInstant.hideBannerAdAsync();
             this._state = FB_AD_STATE.NONE;
         }catch(e){
-            console.error("隐藏广告失败: " + this.getInfo(), e);
-            
-            // 隐藏失败不做任何操作
+            console.error("Hide Banner Failed: " + this.getInfo(), e);
+          
             // this._state = FB_AD_STATE.NONE;
             throw e;
         }
@@ -551,7 +512,7 @@ class FBBannerUnit extends FBAdUnitBase{
 
 export default class FBAdManager{
     public static getVersion(){
-        return "1.0.2";
+        return "1.0.4";
     }
 
     private static _interstitialAds:Array<FBStatefulAdUnit> = [];
@@ -564,44 +525,37 @@ export default class FBAdManager{
 
     private static _bannerSupport = undefined;
 
-    // 插屏广告默认参数
     public static defaultInterstitialOption:FBAdOption = {
         autoLoadOnPlay: FB_AUTO_LOAD_ON_PLAY,
         maxLoadError: FB_MAX_INTERSTITIAL_ERROR,
     };
 
-    // 激励视频默认参数
     public static defaultRewardedVideoOption:FBAdOption = {
         autoLoadOnPlay: FB_AUTO_LOAD_ON_PLAY,
         maxLoadError: FB_MAX_REWARDED_VIDEO_ERROR,
     };
     
-    // banner默认参数
     public static defaultBannerOption:FBAdOption = {
-        autoLoadOnPlay: FB_AUTO_LOAD_ON_PLAY, // banner不需要这个参数
+        autoLoadOnPlay: FB_AUTO_LOAD_ON_PLAY, // no need
         maxLoadError: FB_MAX_BANNER_ERROR,
     };
 
-    // 插屏广告计时器默认参数
     public static defaultInterstitialTimerOption:AdTimerOption = {
         refreshInterval: FB_INTERSTITIAL_REFRESH_INTERVAL,
         delayForFirstAd: FB_AD_DELAY_FOR_FIRST_INTERSTITIAL
     };
 
-    // 激励视频计时器默认参数
     public static defaultRewardedVideoTimerOption:AdTimerOption = {
         refreshInterval: FB_REWARDED_VIDEO_REFRESH_INTERVAL,
         delayForFirstAd: FB_AD_DELAY_FOR_FIRST_REWARDED_VIDEO
     };
     
-    // banner计时器默认参数
     public static defaultBannerTimerOption:AdTimerOption = {
         refreshInterval: FB_BANNER_REFRESH_INTERVAL,
         delayForFirstAd: FB_AD_DELAY_FOR_FIRST_BANNER
     };
 
-    // 1.1 添加插屏广告
-    // 返回已经添加的插屏广告总数
+    // 1.1. add interstitial
     public static addInterstitial(id:string, count:number=FB_INIT_AD_COUNT){
         if(this._interstitialTimer == null){
             this._interstitialTimer = new AdTimer(this.defaultInterstitialTimerOption.refreshInterval, this.defaultInterstitialTimerOption.delayForFirstAd);
@@ -609,21 +563,20 @@ export default class FBAdManager{
 
         for(let i=0;i<count;i++){
             if(this._interstitialAds.length >= FB_MAX_AD_INSTANCE){
-                console.log("添加插屏广告失败, 超出限制: " + this._interstitialAds.length, id);
+                console.log("Fail to add interstitial, too many instances: " + this._interstitialAds.length, id);
                 throw ErrorTooManyAdInstance;
             }
     
             let adUnit = new FBInterstitialUnit(id, this._interstitialTimer, this.defaultInterstitialOption);
     
             this._interstitialAds.push(adUnit);
-            console.log("添加插屏广告: " + id, "count: " + this._interstitialAds.length);    
+            console.log("Add Interstitial: " + id, "count: " + this._interstitialAds.length);    
         }
 
         return this._interstitialAds.length;
     }
 
-    // 1.2. 添加激励视频广告
-    // 返回已经添加的激励视频总数
+    // 1.2. add rewarded video
     public static addRewardedVideo(id:string, count:number=FB_INIT_AD_COUNT){
         if(this._rewardedVideoTimer == null){
             this._rewardedVideoTimer = new AdTimer(this.defaultRewardedVideoTimerOption.refreshInterval, this.defaultRewardedVideoTimerOption.delayForFirstAd);
@@ -631,19 +584,19 @@ export default class FBAdManager{
 
         for(let i=0;i<count;i++){
             if(this._rewardedVideos.length >= FB_MAX_AD_INSTANCE){
-                console.log("添加激励视频广告失败, 超出限制: " + this._rewardedVideos.length, id);
+                console.log("Fail to add RewardedVideo, too many instances: " + this._rewardedVideos.length, id);
                 throw ErrorTooManyAdInstance;
             }
             
             let adUnit = new FBRewardedVideoUnit(id, this._rewardedVideoTimer, this.defaultRewardedVideoOption);
             this._rewardedVideos.push(adUnit);
-            console.log("添加激励视频广告: " + id, "count: " + this._rewardedVideos.length);
+            console.log("Add RewardedVideo: " + id, "count: " + this._rewardedVideos.length);
         }
 
         return this._rewardedVideos.length;
     }
 
-    // 1.3. 添加Banner广告
+    // 1.3. Add Banner
     public static addBanner(id:string){
         if(this._bannerTimer == null){
             this._bannerTimer = new AdTimer(this.defaultBannerTimerOption.refreshInterval, this.defaultBannerTimerOption.delayForFirstAd);
@@ -651,24 +604,21 @@ export default class FBAdManager{
 
         let adUnit = new FBBannerUnit(id, this._bannerTimer, this.defaultBannerOption);
         this._banners.push(adUnit);
-        console.log("添加Banner广告: " + id, "count: " + this._banners.length);
+        console.log("Add Banner: " + id, "count: " + this._banners.length);
 
         return adUnit;
     }
 
-    // 2. 初始化和预加载
-    // Deprecated 此方法用于保持兼容, 建议使用 loadAllAsync
+    // Deprecate, use loadAllAsync instead
     public static async loadAll(){
-        console.log("初始化广告队列");
         return await this.loadAllAsync();
     }
 
-    // 异步顺序预加载所有广告
+    // 2. init and preload
     public static async loadAllAsync(){
         console.log("FBAdManager Version: " + this.getVersion());
-        console.log("初始化广告队列");
-        // 两次加载间间隔N秒
-        // 先加载激励视频
+        console.log("Init Ads Queue");
+
         for(let i=0;i<this._rewardedVideos.length;i++){
             const adUnit = this._rewardedVideos[i];
             if(i>0){
@@ -680,7 +630,7 @@ export default class FBAdManager{
                 
             }
         }
-        // 之后加载插屏
+
         for(let i=0;i<this._interstitialAds.length;i++){
             const adUnit = this._interstitialAds[i];
             if(i>0){
@@ -737,27 +687,27 @@ export default class FBAdManager{
         return this._bannerTimer;
     }
 
-    // 3.1. 判断是否可以播放插屏广告
+    // 3.1. 
     public static isInterstitialAdReady(){
         return this._isAdReady(FB_AD_TYPE.INTERSTITIAL);
     }
 
-    // 4.1. 播放插屏广告
+    // 4.1. 
     public static async showInterstitialAd(){
         return await this._showAsync(FB_AD_TYPE.INTERSTITIAL);
     }
 
-    // 3.2. 判断是否可以播放激励视频广告
+    // 3.2. 
     public static isRewardedVideoReady(){
         return this._isAdReady(FB_AD_TYPE.REWARDED_VIDEO);
     }
 
-    // 4.2. 播放激励视频广告
+    // 4.2. 
     public static async showRewardedVideo(){
         return await this._showAsync(FB_AD_TYPE.REWARDED_VIDEO);
     }
 
-    // 6. 检查是否支持对应API
+    // 6. 
     public static checkApiSupport(api:string){
         if(FBInstant.getSupportedAPIs().indexOf(api) >= 0){
             return true;
@@ -767,7 +717,7 @@ export default class FBAdManager{
         }
     }
 
-    // 6.1. 是否支持banner
+    // 6.1. 
     public static isBannerSupport(){
         if(typeof this._bannerSupport == "undefined"){
             this._bannerSupport = this.checkApiSupport(FB_API_BANNER);   
@@ -776,7 +726,7 @@ export default class FBAdManager{
         return this._bannerSupport;
     }
 
-    // 3.3. banner广告是否可以刷新或者重新加载
+    // 3.3. 
     public static isBannerReady(){
         if(this._banners.length <= 0){
             throw ErrorNoBannerAdInstance;
@@ -786,7 +736,7 @@ export default class FBAdManager{
         return adUnit.isReadyToRefresh();
     }
 
-    // 4.3. 播放默认banner广告
+    // 4.3. 
     public static async showBannerAsync(){
         if(!this.isBannerSupport()){
             throw ErrorApiNotSupport;
@@ -800,7 +750,7 @@ export default class FBAdManager{
         return await adUnit.showAsync();
     }
 
-    // 5.3. 隐藏默认banner广告
+    // 5.3. 
     public static async hideBannerAsync(){
         if(!this.isBannerSupport()){
             throw ErrorApiNotSupport;
