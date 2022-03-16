@@ -89,14 +89,14 @@
                     cc.view.setOrientation(cc.macro.ORIENTATION_PORTRAIT);
                 }
                 // qq, wechat, baidu
-                // cc.view.enableAutoFullScreen(
-                //     cc.sys.browserType !== cc.sys.BROWSER_TYPE_BAIDU &&
-                //     cc.sys.browserType !== cc.sys.BROWSER_TYPE_WECHAT &&
-                //     cc.sys.browserType !== cc.sys.BROWSER_TYPE_MOBILE_QQ
-                // );
                 cc.view.enableAutoFullScreen(
-                    false
-                );                
+                    cc.sys.browserType !== cc.sys.BROWSER_TYPE_BAIDU &&
+                    cc.sys.browserType !== cc.sys.BROWSER_TYPE_WECHAT &&
+                    cc.sys.browserType !== cc.sys.BROWSER_TYPE_MOBILE_QQ
+                );
+                // cc.view.enableAutoFullScreen(
+                //     false
+                // );                
             }
 
             // Limit downloading max concurrent task to 2,
@@ -113,8 +113,18 @@
                     // to end loading view and start the game
                     FBInstant.startGameAsync()
                     .then(function () {
+                        try{
+                            if(cc && cc.view && cc.view.enableAutoFullScreen){
+                                console.info("disable auto full screen");
+                                cc.view.enableAutoFullScreen(
+                                    false
+                                );    
+                            }
+                        }catch(e){
+
+                        }
                         // 记录fb游戏启动事件
-                        gtag("event", "fb_started");
+                        // gtag("event", "fb_started");
 
                         // Retrieving context and player information can only be done
                         // once startGameAsync() resolves
@@ -176,30 +186,30 @@
             FBInstant.initializeAsync()
                 .then(function () {
                     // 设置user_id(后续所有事件都会带这个参数)
-                    const user_id = FBInstant.player.getID();
-                    gtag('config', 'G-3GR92PZZQ8', { 
-                        cookie_flags: 'max-age=7200;secure;samesite=none',
-                        "user_id": user_id
-                    });
+                    // const user_id = FBInstant.player.getID();
+                    // gtag('config', 'G-3GR92PZZQ8', { 
+                    //     cookie_flags: 'max-age=7200;secure;samesite=none',
+                    //     "user_id": user_id
+                    // });
 
                     // gtag("set", {
                     //     "user_id": user_id
                     // });
 
                     // 记录初始化成功事件
-                    gtag("event", "fb_inited");
+                    // gtag("event", "fb_inited");
 
                     // 记录启动来源
                     FBInstant.getEntryPointAsync().then(function(entry){
-                        console.info("Entry Point: ", entry);
-                        gtag("event", "fb_entrypoint", {
-                            entrypoint:entry
-                        });
+                        // console.info("Entry Point: ", entry);
+                        // gtag("event", "fb_entrypoint", {
+                        //     entrypoint:entry
+                        // });
                     });
 
                     // 记录会话类型
                     const contextType = FBInstant.context.getType();
-                    gtag("event", "fb_context", {type: contextType});
+                    // gtag("event", "fb_context", {type: contextType});
                     
                     document.body.removeChild(cocos2d);
                     cocos2d.removeEventListener('load', engineLoaded, false);
