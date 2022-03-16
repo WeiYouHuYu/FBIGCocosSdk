@@ -89,11 +89,14 @@
                     cc.view.setOrientation(cc.macro.ORIENTATION_PORTRAIT);
                 }
                 // qq, wechat, baidu
+                // cc.view.enableAutoFullScreen(
+                //     cc.sys.browserType !== cc.sys.BROWSER_TYPE_BAIDU &&
+                //     cc.sys.browserType !== cc.sys.BROWSER_TYPE_WECHAT &&
+                //     cc.sys.browserType !== cc.sys.BROWSER_TYPE_MOBILE_QQ
+                // );
                 cc.view.enableAutoFullScreen(
-                    cc.sys.browserType !== cc.sys.BROWSER_TYPE_BAIDU &&
-                    cc.sys.browserType !== cc.sys.BROWSER_TYPE_WECHAT &&
-                    cc.sys.browserType !== cc.sys.BROWSER_TYPE_MOBILE_QQ
-                );
+                    false
+                );                
             }
 
             // Limit downloading max concurrent task to 2,
